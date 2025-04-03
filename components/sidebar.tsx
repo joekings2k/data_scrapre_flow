@@ -31,9 +31,10 @@ const routes = [
   },
   
 ]
+
+
 function DesktopSidebar() {
   const pathname = usePathname()
-  console.log(pathname)
   const activeRoute = routes.find(route =>route.href.length>0 && pathname.includes(route.href)) || routes[0]
   
   return (
@@ -45,7 +46,7 @@ function DesktopSidebar() {
       <div className='flex flex-col p-2 '>
         {
           routes.map(route=>(
-            <Link key={route.href} href={route.href} className={buttonVariants({variant:activeRoute?.href === route.href ? "sidebarItemActive" : "sidebarItem", className:"mb-2"})}>
+            <Link key={route.href} href={`/${route.href}`} className={buttonVariants({variant:activeRoute?.href === route.href ? "sidebarItemActive" : "sidebarItem", className:"mb-2"})}>
             <route.icon size={20}/>
             {route.label}
             </Link>
@@ -55,6 +56,7 @@ function DesktopSidebar() {
     </div>
   )
 }
+
 export function MobileSideBar (){
   const [isOpen, setIsOpen] = React.useState(false)
   const pathname = usePathname();
