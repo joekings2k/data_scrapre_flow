@@ -60,7 +60,7 @@ function DesktopSidebar() {
 export function MobileSideBar (){
   const [isOpen, setIsOpen] = React.useState(false)
   const pathname = usePathname();
-  console.log(pathname);
+
   const activeRoute =
     routes.find(
       (route) => route.href.length > 0 && pathname.includes(route.href)
