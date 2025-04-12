@@ -1,6 +1,7 @@
 export enum TaskType {
   LAUNCH_BROWSER = "LAUNCH_BROWSER",
   PAGE_TO_HTML = "PAGE_TO_HTML",
+  EXTRACT_TEXT_FROM_ELEMENT ="EXTRACT_TEXT_FROM_ELEMENT",
   // NAVIGATE = "NAVIGATE",
   // CLICK = "CLICK",
   // SCROLL = "SCROLL",
@@ -9,8 +10,6 @@ export enum TaskType {
 
 export enum TaskParamType {
   STRING = "STRING",
-  NUMBER = "NUMBER",
-  BOOLEAN = "BOOLEAN",
   BROWSER_INSTANCE = "BROWSER_INSTANCE",
 }
 

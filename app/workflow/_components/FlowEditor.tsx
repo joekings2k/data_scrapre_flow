@@ -1,9 +1,12 @@
 "use client";
 import { Workflow } from "@prisma/client";
 import {
+  addEdge,
   Background,
   BackgroundVariant,
+  Connection,
   Controls,
+  Edge,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -15,52 +18,69 @@ import { CreateFlowNode } from "@/lib/workflow/createFlowNode";
 import { TaskType } from "@/types/task";
 import NodeComponent from "./nodes/NodeComponents";
 import { AppNode } from "@/types/appNode";
-
+import { DeletableEdge } from "./edges/DeletableEdge";
 
 const nodeTypes = {
-  FlowScrapeNode:NodeComponent,
-}
-const snapGrid :[number,number] = [50,50]
+  FlowScrapeNode: NodeComponent,
+};
+const edgeTypes = {
+  default: DeletableEdge,
+};
+const snapGrid: [number, number] = [50, 50];
 const fitViewOptions = {
   padding: 1,
-}
+};
 function FlowEditor({ workflow }: { workflow: Workflow }) {
   const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>([]);
   //  const [nodes, setNodes, onNodesChange] = useNodesState([
   //    CreateFlowNode(TaskType.LAUNCH_BROWSER),
   //  ]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const {setViewport,screenToFlowPosition} = useReactFlow()
-  useEffect(()=>{
-    try{
-      const flowDefinition = JSON.parse(workflow.definition)
-      setNodes(flowDefinition.nodes || [])
-      setEdges(flowDefinition.edges || [])
-      if (!flowDefinition.viewport)return;
-      const {x=0,y=0,zoom=1} = flowDefinition.viewport
-      setViewport({x,y,zoom})
-    }catch(e){
-      console.log(e)
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { setViewport, screenToFlowPosition, updateNodeData } = useReactFlow();
+  useEffect(() => {
+    try {
+      const flowDefinition = JSON.parse(workflow.definition);
+      setNodes(flowDefinition.nodes || []);
+      setEdges(flowDefinition.edges || []);
+      if (!flowDefinition.viewport) return;
+      const { x = 0, y = 0, zoom = 1 } = flowDefinition.viewport;
+      setViewport({ x, y, zoom });
+    } catch (e) {
+      console.log(e);
     }
-  },[workflow.definition,setEdges,setNodes,setViewport])
+  }, [workflow.definition, setEdges, setNodes, setViewport]);
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-  },[])
+  }, []);
   const onDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const taskType = event.dataTransfer.getData("application/reactflow"); 
-    
-    if(typeof taskType === undefined || !taskType)return;
+    const taskType = event.dataTransfer.getData("application/reactflow");
 
-    const position = screenToFlowPosition({x:event.clientX,y:event.clientY})
+    if (typeof taskType === undefined || !taskType) return;
 
-    const newNode = CreateFlowNode(taskType as TaskType,position)
+    const position = screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    const newNode = CreateFlowNode(taskType as TaskType, position);
     setNodes((nds) => nds.concat(newNode));
     // const position = event.nativeEvent.offsetX/2
     // const newNode = CreateFlowNode(taskType,{x:position,y:0})
     // setNodes((nds) => nds.concat(newNode));
-  },[])
+  }, []);
+  const onConnect = useCallback((connection: Connection) => {
+    setEdges((eds) => addEdge({ ...connection, animated: true }, eds));
+    if (!connection.targetHandle) return;
+    const node = nodes.find((nd) => nd.id === connection.target);
+    if (!node) return;
+    const nodeInputs = node.data.inputs;
+    updateNodeData(node.id, {
+      inputs: { ...nodeInputs, [connection.targetHandle]: "" },
+    });
+  }, [setEdges ,updateNodeData,nodes]);
+
   return (
     <main className="h-full w-full">
       <ReactFlow
@@ -69,11 +89,13 @@ function FlowEditor({ workflow }: { workflow: Workflow }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         snapToGrid={true}
         snapGrid={snapGrid}
         fitViewOptions={fitViewOptions}
         onDragOver={onDragOver}
-        onDrop ={onDrop}
+        onDrop={onDrop}
+        onConnect={onConnect}
       >
         <Controls position="top-left" fitViewOptions={fitViewOptions} />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
