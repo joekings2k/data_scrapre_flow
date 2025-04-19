@@ -7,10 +7,10 @@ const useExecutionPlan = () => {
   const  {toObject} = useReactFlow()
 
   const generateExecutionPlan =useCallback( () => {
-    const  {nodes:Nodes,edges} = toObject()
-    const nodes = Nodes as AppNode[]
-    const result = FlowToExecutionPlan(nodes,edges)
-    return result
+    const  {nodes,edges} = toObject()
+    
+    const {executionPlan} = FlowToExecutionPlan(nodes as AppNode[],edges)
+    return executionPlan
   },[toObject])
   return generateExecutionPlan
 }
