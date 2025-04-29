@@ -7,7 +7,7 @@ import React from "react";
 import SaveBtn from "./SaveBtn";
 import ExecuteBtn from "./ExecuteBtn";
 
-function TopBar({ title,subTitle ,workflowId}: { title: string,subTitle?:string,workflowId:string }) {
+function TopBar({ title,subTitle ,workflowId,hideButtons=false}: { title: string,subTitle?:string,workflowId:string,hideButtons?:boolean }) {
   const router = useRouter();
   return (
     <header className="flex p-2 border-b-2 border-separate justify-between w-full h-[60px]  sticky top-0 bg-background z-10">
@@ -19,12 +19,22 @@ function TopBar({ title,subTitle ,workflowId}: { title: string,subTitle?:string,
         </TooltipWrapper>
         <div>
           <p className=" font-bold text-ellipsis truncate">{title}</p>
-          {subTitle && <p className="text-ellipsis truncate text-xs text-muted-foreground">{subTitle}</p>}
+          {subTitle && (
+            <p className="text-ellipsis truncate text-xs text-muted-foreground">
+              {subTitle}
+            </p>
+          )}
         </div>
       </div>
+
       <div className="flex gap-1 flex-1 justify-end">
-        <ExecuteBtn workflowId={workflowId}  />
-        <SaveBtn workflowId={workflowId} />
+        {!hideButtons && (
+          <>
+            <SaveBtn workflowId={workflowId} />
+            <ExecuteBtn workflowId={workflowId} />
+          </>
+        )}
+       
       </div>
     </header>
   );

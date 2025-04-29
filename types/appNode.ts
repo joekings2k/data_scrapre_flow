@@ -19,5 +19,5 @@ export interface ParamProps {
 
 export type AppNodeMissingInputs = {
   nodeId:string,
-  inputs:string[]
+  inputs:TaskParam[] // remember to come hear was an array of string
 }
