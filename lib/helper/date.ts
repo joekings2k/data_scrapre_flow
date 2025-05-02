@@ -12,5 +12,5 @@ export function DateToDurationString(
   const duration = intervalToDuration({
     start:0,end:timeElapsed //
   })
-  return `${duration.minutes || 0} ${duration.seconds || 0}s}`
+  return `${duration.minutes || 0} ${duration.seconds || 0}s`
 }

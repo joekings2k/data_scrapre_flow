@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { ExecuteWorkflow } from "@/lib/workflow/executeWorkflow";
 import { FlowToExecutionPlan } from "@/lib/workflow/executionPlan";
 import { TaskRegistry } from "@/lib/workflow/task/registry";
 import { ExecutionPhaseStatus, WorkflowExcutionStatus, WorkflowExecutionPlan, WorkflowExecutionTrigger } from "@/types/workflow";
@@ -67,5 +68,6 @@ const execution = await prisma.workflowExecution.create({
 if(!execution){
   throw new Error("Failed to create execution")
 }
+ExecuteWorkflow (execution.id) // run this on background
 redirect(`/workflow/runs/${workflowId}/${execution.id}`)
 }
