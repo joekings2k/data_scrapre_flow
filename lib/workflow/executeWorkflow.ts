@@ -6,6 +6,7 @@ import "server-only";
 import { TaskRegistry } from "./task/registry";
 import { waitFor } from "../helper/waitFor";
 import { ExecutorRegistry } from "./executor/registry";
+import { Environment, ExecutionEnvironment } from "@/types/executor";
 export async function ExecuteWorkflow(executionId: string) {
   const execution = await prisma.workflowExecution.findUnique({
     where: {
@@ -20,7 +21,7 @@ export async function ExecuteWorkflow(executionId: string) {
     throw new Error("execution not found");
   }
 
-  const environment = {
+  const environment: Environment = {
     phases: {},
   };
   await initializeWorkflowExecution(execution.id, execution.workflowId);
@@ -29,10 +30,10 @@ export async function ExecuteWorkflow(executionId: string) {
   let executionFailed = false;
   for (const phase of execution.phases) {
     // consumeCredits
-    const phaseExecution = await executeWorkflowPhase(phase);
-    if(!phaseExecution.success){
-      executionFailed = true
-      break
+    const phaseExecution = await executeWorkflowPhase(phase, environment);
+    if (!phaseExecution.success) {
+      executionFailed = true;
+      break;
     }
     // TODO: execute phase
   }
@@ -103,22 +104,27 @@ async function finalizeWorkflowExecution(
       creditsConsumed,
     },
   });
-  await prisma.workflow.update({
-    where: {
-      id: workflowId,
-      lastRunId: executionId,
-    },
-    data: {
-      lastRunStatus: fintalStatus,
-    },
-  }).catch(e=>console.log(e)) 
+  await prisma.workflow
+    .update({
+      where: {
+        id: workflowId,
+        lastRunId: executionId,
+      },
+      data: {
+        lastRunStatus: fintalStatus,
+      },
+    })
+    .catch((e) => console.log(e));
 }
 
-async function executeWorkflowPhase(phase: ExecutionPhase) {
+async function executeWorkflowPhase(
+  phase: ExecutionPhase,
+  environment: Environment
+) {
   const startedAt = new Date();
-  const node  = JSON.parse(phase.node) as AppNode
-
-  // update phase status 
+  const node = JSON.parse(phase.node) as AppNode;
+  setupEnvironmentForPhase(node, environment);
+  // update phase status
 
   await prisma.executionPhase.update({
     where: {
@@ -130,15 +136,23 @@ async function executeWorkflowPhase(phase: ExecutionPhase) {
     },
   });
   const creditsRequired = TaskRegistry[node.data.type].credits;
-  console.log('execution phase:',phase?.name,"with",creditsRequired,"credits")
+  console.log(
+    "execution phase:",
+    phase?.name,
+    "with",
+    creditsRequired,
+    "credits"
+  );
   // decrement user balance with required credits
-  const success = await executePhase(phase,node)
-  await finalizePhase (phase.id,success)
-  return {success}
+  const success = await executePhase(phase, node, environment);
+  await finalizePhase(phase.id, success);
+  return { success };
 }
 
-async function finalizePhase(phaseId:string,success:boolean){
-  const finalStatus = success ? ExecutionPhaseStatus.COMPLETED : ExecutionPhaseStatus.FAILED
+async function finalizePhase(phaseId: string, success: boolean) {
+  const finalStatus = success
+    ? ExecutionPhaseStatus.COMPLETED
+    : ExecutionPhaseStatus.FAILED;
   await prisma.executionPhase.update({
     where: {
       id: phaseId,
@@ -150,13 +164,43 @@ async function finalizePhase(phaseId:string,success:boolean){
   });
 }
 
-
-async function executePhase(phase: ExecutionPhase,node:AppNode):Promise<boolean> {
-  const runFn = ExecutorRegistry[node.data.type]
-  if(!runFn){
-    throw new Error("Invalid task type")
-    return false
+async function executePhase(
+  phase: ExecutionPhase,
+  node: AppNode,
+  environment: Environment
+): Promise<boolean> {
+  const runFn = ExecutorRegistry[node.data.type];
+  if (!runFn) {
+    throw new Error("Invalid task type");
+    return false;
   }
-  
-  return await runFn()
+  const executionEnvironment:ExecutionEnvironment<any> = createExecutionEnvironment(node, environment);
+  return await runFn(executionEnvironment);
+}
+
+function setupEnvironmentForPhase(node: AppNode, environment: Environment) {
+  environment.phases[node.id] = {
+    inputs: {},
+    outputs: {},
+  };
+  const inputsDefinition = TaskRegistry[node.data.type].inputs;
+  for (const input of inputsDefinition) {
+    const inputValue = node.data.inputs[input.name];
+
+    if (inputValue) {
+      environment.phases[node.id].inputs[input.name] = inputValue;
+      continue;
+    }
+  }
+}
+
+function createExecutionEnvironment(
+  node: AppNode,
+  environment: Environment
+): ExecutionEnvironment<any> {
+  return {
+    getInput(name: string): string {
+      return environment.phases[node.id].inputs[name];
+    },
+  };
 }
