@@ -55,8 +55,8 @@ const UserWorkflows =  async() => {
    
     return <div className="gird grid-cols-1 gap-4 ">
       {
-        workflows.map(workflow=>(
-          <WorkflowCard workflow={workflow} />
+        workflows.map((workflow,i) =>(
+          <WorkflowCard workflow={workflow} key={i} />
         ))
       }
     </div>

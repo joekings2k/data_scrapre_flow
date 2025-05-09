@@ -18,12 +18,14 @@ import {
   LucideIcon,
   WorkflowIcon,
 } from "lucide-react";
+
+import { Card ,CardContent,CardDescription ,CardHeader,CardTitle} from "@/components/ui/card"
 import React, { ReactNode, useState } from "react";
 
 type ExecutionData = Awaited<ReturnType<typeof getWorkflowExecutionWithPhases>>;
 function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
-  const [selectedPhase, setSelectedPhase] = useState<string|null>(null);
-  console.log(selectedPhase)
+  const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
+  console.log(selectedPhase);
   const query = useQuery({
     queryKey: ["execution", initialData?.id],
     initialData,
@@ -32,13 +34,13 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
       q.state.data?.status === WorkflowExcutionStatus.RUNNING ? 1000 : false,
   });
 
-  const phaseDetails  = useQuery({
+  const phaseDetails = useQuery({
     queryKey: ["phaseDetails", selectedPhase],
     enabled: !!selectedPhase,
     queryFn: () => getWorkflowPhaseDetails(selectedPhase!),
-  })
+  });
 
-  console.log(phaseDetails)
+  console.log(phaseDetails);
   const isRunning = query.data?.status === WorkflowExcutionStatus.RUNNING;
   const duration = DateToDurationString(
     query.data?.completedAt,
@@ -97,10 +99,10 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
             <Button
               key={phase.id}
               className="w-full justify-between "
-              variant={ selectedPhase === phase.id ? "secondary" : "ghost"}
+              variant={selectedPhase === phase.id ? "secondary" : "ghost"}
               onClick={() => {
-                if(isRunning)return
-                setSelectedPhase(phase.id)
+                if (isRunning) return;
+                setSelectedPhase(phase.id);
               }}
             >
               <div className="flex gap-2 items-center ">
@@ -113,7 +115,43 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
         </div>
       </aside>
       <div className="flex w-full h-full">
-          <pre>{JSON.stringify(phaseDetails.data,null,2)}</pre>
+        {isRunning && (
+          <div className="flex items-center flex-col gap-2 justify-center h-full w-full">
+            <p className="font-bold">Run is in pprogress, please wait...</p>
+          </div>
+        )}
+        {!isRunning && !selectedPhase && (
+          <div className="flex items-center flex-col gap-2 justify-center h-full w-full">
+            <div className="flex flex-col gap-1 text-center">
+              <p className="font-bold">No phase selected </p>
+              <p className="text-sm text-muted-foreground">
+                Select a phase to view details
+              </p>
+            </div>
+          </div>
+        )}
+        {!isRunning && selectedPhase && phaseDetails.data && (
+          <div className="flex flex-col py-4 container gap-4 overflow-auto">
+            <div className="flex gap-2 items-center">
+              <Badge variant={"outline"} className="space-x-4">
+                <div className="flex gap-1items-center">
+                  <CoinsIcon size={18} className="stroke-muted-foreground" />
+                  <span>Credits</span>
+                </div>
+                <span>TODO</span>
+              </Badge>
+              <Badge variant={"outline"} className="space-x-4">
+                <div className="flex gap-1items-center">
+                  <ClockIcon size={18} className="stroke-muted-foreground" />
+                  <span>Dutation</span>
+                </div>
+                <span>{DateToDurationString(phaseDetails.data.completedAt, phaseDetails.data.startedAt) || "-"}</span>
+              </Badge>
+            </div>
+
+            <ParameterViewer title= "Inputs" subtitle= "Inputs used for this phase" paramsJson= {phaseDetails.data.inputs} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -141,4 +179,23 @@ function ExecutionLabel({
     </div>
   );
 }
+
+function ParameterViewer({
+  title,
+  subtitle,
+  paramsJson,
+}: {
+  title: string;
+  subtitle: string;
+  paramsJson: string |null;
+}) {
+   const params =  paramsJson ? JSON.parse(paramsJson) : undefined;
+  return (
+    <div className="flex flex-col gap-2">
+      
+    </div>
+  );
+}
+
+
 export default ExecutionViewer;
