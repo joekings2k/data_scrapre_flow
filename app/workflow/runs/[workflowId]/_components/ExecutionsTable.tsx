@@ -19,7 +19,7 @@ export default function ExecutionsTable({workflowId,initialData}:{workflowId:str
             <TableHead className='text-muted-foreground'>ID</TableHead>
             <TableHead className='text-muted-foreground'>Status</TableHead>
             <TableHead className='text-muted-foreground'>Consumed</TableHead>
-            <TableHead className='text-muted-foreground'>Started At</TableHead>
+            <TableHead className='text-muted-foreground text-right text-xs'>Started At</TableHead>
           </TableRow>
         </TableHeader>
 
