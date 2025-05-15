@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { DateToDurationString } from "@/lib/helper/date";
 import { GetPhasesTotalCost } from "@/lib/helper/phases";
-import { WorkflowExcutionStatus } from "@/types/workflow";
+import { ExecutionPhaseStatus, WorkflowExcutionStatus } from "@/types/workflow";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
   CalendarIcon,
+  Car,
   CircleDashedIcon,
   ClockIcon,
   CoinsIcon,
@@ -19,13 +20,34 @@ import {
   WorkflowIcon,
 } from "lucide-react";
 
-import { Card ,CardContent,CardDescription ,CardHeader,CardTitle} from "@/components/ui/card"
-import React, { ReactNode, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import React, { ReactNode, useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { ExecutionLog } from "@prisma/client";
+import { cn } from "@/lib/utils";
+import { LogLevel } from "@/types/log";
+import PhaseStatusBadge from "./PhaseStatusBadge";
+import ReactCountUpWrapper from "@/components/ReactCountUpWrapper";
 
 type ExecutionData = Awaited<ReturnType<typeof getWorkflowExecutionWithPhases>>;
 function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   console.log(selectedPhase);
+  console.log(initialData);
   const query = useQuery({
     queryKey: ["execution", initialData?.id],
     initialData,
@@ -40,8 +62,31 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
     queryFn: () => getWorkflowPhaseDetails(selectedPhase!),
   });
 
-  console.log(phaseDetails);
+  console.log("phaseDetails",selectedPhase);
   const isRunning = query.data?.status === WorkflowExcutionStatus.RUNNING;
+  // useEffect( ()=>{
+  //  for (const phase of query.data?.phases || []) {
+  //   if (phase.status === ExecutionPhaseStatus.RUNNING) {
+  //     setSelectedPhase(phase.id);
+  //     break;
+  //   }
+  //  }
+  // },[query.data?.phases]) my solution 
+
+  useEffect(()=>{
+    const phases = query.data?.phases || [];
+    if(isRunning){
+      const phaseToSelect  = phases.toSorted((a,b)=>
+      a.startedAt! > b.startedAt! ? -1 : 1)[0]
+      setSelectedPhase(phaseToSelect.id);
+      return;
+    }
+    const phaseToSelect = phases.toSorted((a, b) =>
+      a.completedAt! > b.completedAt! ? -1 : 1
+    )[0];
+    setSelectedPhase(phaseToSelect.id);
+    
+  },[query.data?.phases, isRunning,selectedPhase])
   const duration = DateToDurationString(
     query.data?.completedAt,
     query.data?.startedAt
@@ -83,7 +128,7 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
           <ExecutionLabel
             icon={CoinsIcon}
             label="Coins Consumed"
-            value={creditsConsumed}
+            value={<ReactCountUpWrapper value={creditsConsumed} />}
           />
         </div>
         <Separator />
@@ -109,7 +154,7 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
                 <Badge variant={"outline"}>{index + 1}</Badge>
                 <p className="font-semibold">{phase.name}</p>
               </div>
-              <p className="text-muted-foreground text-xs ">{phase.status}</p>
+              <PhaseStatusBadge status={phase.status as ExecutionPhaseStatus} />
             </Button>
           ))}
         </div>
@@ -138,18 +183,33 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
                   <CoinsIcon size={18} className="stroke-muted-foreground" />
                   <span>Credits</span>
                 </div>
-                <span>TODO</span>
+                <span>{phaseDetails.data.creditsConsumed}</span>
               </Badge>
               <Badge variant={"outline"} className="space-x-4">
                 <div className="flex gap-1items-center">
                   <ClockIcon size={18} className="stroke-muted-foreground" />
                   <span>Dutation</span>
                 </div>
-                <span>{DateToDurationString(phaseDetails.data.completedAt, phaseDetails.data.startedAt) || "-"}</span>
+                <span>
+                  {DateToDurationString(
+                    phaseDetails.data.completedAt,
+                    phaseDetails.data.startedAt
+                  ) || "-"}
+                </span>
               </Badge>
             </div>
 
-            <ParameterViewer title= "Inputs" subtitle= "Inputs used for this phase" paramsJson= {phaseDetails.data.inputs} />
+            <ParameterViewer
+              title="Inputs"
+              subtitle="Inputs used for this phase"
+              paramsJson={phaseDetails.data.inputs}
+            />
+            <ParameterViewer
+              title="Outputs"
+              subtitle="Outputs generated by this phase"
+              paramsJson={phaseDetails.data.outputs}
+            />
+            <LogViewer logs={phaseDetails.data.logs} />
           </div>
         )}
       </div>
@@ -187,15 +247,92 @@ function ParameterViewer({
 }: {
   title: string;
   subtitle: string;
-  paramsJson: string |null;
+  paramsJson: string | null;
 }) {
-   const params =  paramsJson ? JSON.parse(paramsJson) : undefined;
+  const params = paramsJson ? JSON.parse(paramsJson) : undefined;
   return (
-    <div className="flex flex-col gap-2">
-      
-    </div>
+    <Card>
+      <CardHeader className="rounded-lg rounded-b-none border-b py-4 bg-gray-50 dark:bg-background ">
+        <CardTitle className="text-base">{title}</CardTitle>
+        <CardDescription className="text-muted-foreground text-sm">
+          {subtitle}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="py-4">
+        <div className="flex flex-col gap-2">
+          {(!params || Object.keys(params).length === 0) && (
+            <p className="text-sm">No parameters genrated by this phase</p>
+          )}
+          {params &&
+            Object.entries(params).map(([key, value]) => (
+              <div
+                key={key}
+                className="flex justify-between items-center space-y-1"
+              >
+                <p className="text-sm text-muted-foreground flex-1 basis-1/3">
+                  {key}
+                </p>
+                <Input
+                  readOnly
+                  className="flex-1 basis-2/3 focus:border-none focus-visible:outline-none focus-visible:ring-1  focus-visible:ring-offset-0"
+                  value={value as string}
+                />
+              </div>
+            ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
+function LogViewer({ logs }: { logs: ExecutionLog[] | undefined }) {
+  if (!logs || logs.length === 0) return null;
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="rounded-lg rounded-b-none border-b py-4 bg-gray-50 dark:bg-background ">
+        <CardTitle className="text-base">Logs</CardTitle>
+        <CardDescription className="text-muted-foreground text-sm">
+          Logs generated by this phase
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="text-muted-foreground text-sm">
+            <TableRow>
+              <TableHead className="">Time</TableHead>
+              <TableHead className="">Level</TableHead>
+              <TableHead className="">Message</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {logs.map((log) => (
+              <TableRow
+                key={log.id}
+                className="hover:bg-muted/50 text-muted-foreground"
+              >
+                <TableCell className="text-xs text-muted-foreground p-[2px] pl-4" width={190}>
+                  {log.timestamp.toISOString()}
+                </TableCell>
+                <TableCell
+                width={80}
+                  className={cn(
+                    "text-xs uppercase font-bold p-[3px] pl-4",
+                    (log.logLevel as LogLevel) === "error" &&
+                      "text-destructive",
+                    (log.logLevel as LogLevel) === "info" && "text-primary"
+                  )}
+                >
+                  {log.logLevel}
+                </TableCell>
+                <TableCell className="text-sm flex-1 p-[3px] pl-4 ">{log.message}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default ExecutionViewer;
