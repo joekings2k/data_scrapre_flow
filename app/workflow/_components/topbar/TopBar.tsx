@@ -7,17 +7,20 @@ import React from "react";
 import SaveBtn from "./SaveBtn";
 import ExecuteBtn from "./ExecuteBtn";
 import NavigationTabs from "./NavigationTabs";
+import PublishBtn from "./PublishBtn";
 
 function TopBar({
   title,
   subTitle,
   workflowId,
   hideButtons = false,
+  isPublished = false,
 }: {
   title: string;
   subTitle?: string;
   workflowId: string;
   hideButtons?: boolean;
+  isPublished?:boolean;
 }) {
   const router = useRouter();
   return (
@@ -41,8 +44,13 @@ function TopBar({
       <div className="flex gap-1 flex-1 justify-end">
         {!hideButtons && (
           <>
-            <SaveBtn workflowId={workflowId} />
             <ExecuteBtn workflowId={workflowId} />
+            {!isPublished && (
+              <>
+                <SaveBtn workflowId={workflowId} />
+                <PublishBtn workflowId={workflowId} />
+              </>
+            )}
           </>
         )}
       </div>

@@ -16,10 +16,12 @@ model Workflow {
   name      String
   description String?
   definition String
+  executionPlan String?
+  creditsCost Int @default(0)
   status    String
-lastRunAt DateTime?
-lastRunId String?
-lastRunStatus String?
+  lastRunAt DateTime?
+  lastRunId String?
+  lastRunStatus String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

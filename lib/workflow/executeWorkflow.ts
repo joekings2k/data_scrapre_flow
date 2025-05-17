@@ -159,7 +159,7 @@ async function executeWorkflowPhase(
   const creditsRequired = TaskRegistry[node.data.type].credits;
   let success = await decrementCredits(userId, creditsRequired, logCollector);
   const creditsConsumed= success ? creditsRequired : 0;
-  if (!success) {
+  if (success) {
     success = await executePhase(phase, node, environment, logCollector);
   }
   // decrement user balance with required credits
@@ -212,7 +212,7 @@ async function executePhase(
     throw new Error("Invalid task type");
     return false;
   }
-  await waitFor(3000);
+ 
   const executionEnvironment: ExecutionEnvironment<any> =
     createExecutionEnvironment(node, environment, logCollector);
   return await runFn(executionEnvironment);

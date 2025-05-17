@@ -86,7 +86,7 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
     )[0];
     setSelectedPhase(phaseToSelect.id);
     
-  },[query.data?.phases, isRunning,selectedPhase])
+  },[query.data?.phases, isRunning])
   const duration = DateToDurationString(
     query.data?.completedAt,
     query.data?.startedAt
@@ -100,7 +100,14 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
           <ExecutionLabel
             icon={CircleDashedIcon}
             label="Status"
-            value={query.data?.status}
+            value={
+              <div className="flex font-semibold gap-2 items-center">
+                <PhaseStatusBadge
+                  status={query.data?.status as ExecutionPhaseStatus}
+                />
+                <span>{query.data?.status} </span>
+              </div>
+            }
           />
           <ExecutionLabel
             icon={CalendarIcon}
