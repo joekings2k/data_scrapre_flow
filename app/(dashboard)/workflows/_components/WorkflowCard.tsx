@@ -5,8 +5,11 @@ import { cn } from "@/lib/utils";
 import { WorkflowStatus } from "@/types/workflow";
 import { Workflow } from "@prisma/client";
 import {
+  CoinsIcon,
+  CornerDownRightIcon,
   FileTextIcon,
   MoreVerticalIcon,
+  MoveRightIcon,
   PlayIcon,
   ShuffleIcon,
   TrashIcon,
@@ -23,6 +26,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import TooltipWrapper from "@/components/TooltipWrapper";
 import DeleteWorkflowDialogue from "./DeleteWorkflowDialogue";
+import RunBtn from "./RunBtn";
+import SchedulerDialog from "./SchedulerDialog";
+import { Badge } from "@/components/ui/badge";
 const WorkflowCard = ({ workflow }: { workflow: Workflow }) => {
   const isDraft = workflow.status === "DRAFT";
   const statusColors = {
@@ -59,9 +65,12 @@ const WorkflowCard = ({ workflow }: { workflow: Workflow }) => {
                 </span>
               )}
             </h3>
+            <SchedulerSection isDraft={isDraft} creditsCost={workflow.creditsCost} />
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {!isDraft && <RunBtn workflowId={workflow.id} />}
+
           <Link
             href={`/workflow/editor/${workflow.id}`}
             className={cn(
@@ -72,14 +81,23 @@ const WorkflowCard = ({ workflow }: { workflow: Workflow }) => {
             <ShuffleIcon size={16} />
             Edit
           </Link>
-          <WorkflowActions workflowName={workflow.name} workflowId={workflow.id} />
+          <WorkflowActions
+            workflowName={workflow.name}
+            workflowId={workflow.id}
+          />
         </div>
       </CardContent>
     </Card>
   );
 };
 
-const WorkflowActions = ({workflowName,workflowId}:{workflowName:string,workflowId:string}) => {
+const WorkflowActions = ({
+  workflowName,
+  workflowId,
+}: {
+  workflowName: string;
+  workflowId: string;
+}) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
   return (
     <>
@@ -118,5 +136,29 @@ const WorkflowActions = ({workflowName,workflowId}:{workflowName:string,workflow
     </>
   );
 };
+
+function SchedulerSection({ isDraft,creditsCost }: { isDraft: boolean,creditsCost:number }) {
+  if (isDraft) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      <CornerDownRightIcon className="h-4 w-4 text-muted-foreground" />
+      <SchedulerDialog />
+      <MoveRightIcon className="h-4 w-4 text-muted-foreground" />
+      <TooltipWrapper content="credit consumtion for full run">
+        <div className="flex items-center gap-3">
+          <Badge
+            variant={"outline"}
+            className="space-x-2 text-muted-foreground rounded-sm"
+          >
+            {" "}
+            <CoinsIcon className="h-4 w-4" />
+            <span>{creditsCost}</span>
+          </Badge>
+        </div>
+      </TooltipWrapper>
+    </div>
+  );
+}
 
 export default WorkflowCard;

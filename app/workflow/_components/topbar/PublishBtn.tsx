@@ -28,7 +28,7 @@ const PublishBtn = ({workflowId}:{workflowId:string}) => {
       if(!executionPlan){
         return
       }
-      toast.loading("Executing workflow",{id:"flow-execution"})
+      toast.loading("Executing workflow",{id:workflowId})
       mutation.mutate({id:workflowId,flowDefinition:JSON.stringify(toObject())})
     }}>
       <UploadIcon size={16} className='stroke-green-400' />

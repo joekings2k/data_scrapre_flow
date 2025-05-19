@@ -8,6 +8,7 @@ import SaveBtn from "./SaveBtn";
 import ExecuteBtn from "./ExecuteBtn";
 import NavigationTabs from "./NavigationTabs";
 import PublishBtn from "./PublishBtn";
+import UnPublishBtn from "@/app/workflow/_components/topbar/Unpublish";
 
 function TopBar({
   title,
@@ -45,6 +46,8 @@ function TopBar({
         {!hideButtons && (
           <>
             <ExecuteBtn workflowId={workflowId} />
+            {isPublished && <UnPublishBtn workflowId={workflowId} />}
+
             {!isPublished && (
               <>
                 <SaveBtn workflowId={workflowId} />
