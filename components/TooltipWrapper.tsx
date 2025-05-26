@@ -8,12 +8,13 @@ import {
 } from "./ui/tooltip";
 
 interface Props {
-  content: string;
+  content: string | null;
   children: React.ReactNode;
   side?: "top" | "bottom" | "left" | "right";
 }
 
 const TooltipWrapper = (props: Props) => {
+  if (!props.content) return props.children;
   return (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
