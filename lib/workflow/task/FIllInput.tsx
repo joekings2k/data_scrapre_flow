@@ -4,7 +4,7 @@ import {  CodeIcon, Edit3Icon, GlobeIcon, LucideProps } from "lucide-react";
 
 export const FillInputTask = {
   type: TaskType.FILL_INPUT,
-  label: "Get html from page",
+  label: "Fill text input",
   icon: (props) => (
     <Edit3Icon className="stroke-pink-400" {...props} />
   ),

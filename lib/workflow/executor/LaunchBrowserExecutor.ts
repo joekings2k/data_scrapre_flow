@@ -1,4 +1,3 @@
-import { waitFor } from "@/lib/helper/waitFor";
 import { ExecutionEnvironment } from "@/types/executor";
 import puppeteer from "puppeteer";
 import { LaunchBrowserTask } from "../task/LaunchBrowser";
@@ -8,12 +7,11 @@ export async function LaunchBrowserExecutor (environment:ExecutionEnvironment<ty
   const websiteUrl  = environment.getInput("Browser Url")
   
   const browser = await puppeteer.launch({
-    headless: true
+    headless: false
   });
   environment.log.info('Browser launched successfully');
   environment.setBrowser(browser)
   const page = await browser.newPage();
-  console.log(`Navigating to ${websiteUrl}`);
   await page.goto(websiteUrl);
   environment.setPage(page)
   environment.log.info(`Browser navigated to ${websiteUrl}`);

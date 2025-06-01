@@ -46,8 +46,6 @@ import ReactCountUpWrapper from "@/components/ReactCountUpWrapper";
 type ExecutionData = Awaited<ReturnType<typeof getWorkflowExecutionWithPhases>>;
 function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
   const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
-  console.log(selectedPhase);
-  console.log(initialData);
   const query = useQuery({
     queryKey: ["execution", initialData?.id],
     initialData,
@@ -57,7 +55,7 @@ function ExecutionViewer({ initialData }: { initialData: ExecutionData }) {
   });
 
   const phaseDetails = useQuery({
-    queryKey: ["phaseDetails", selectedPhase],
+    queryKey: ["phaseDetails", selectedPhase,query.data?.status],
     enabled: !!selectedPhase,
     queryFn: () => getWorkflowPhaseDetails(selectedPhase!),
   });

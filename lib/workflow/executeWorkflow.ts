@@ -27,7 +27,6 @@ export async function ExecuteWorkflow(executionId: string,nextRunAt?:Date) {
   if (!execution) {
     throw new Error("execution not found");
   }
-  console.log(execution.workflow.definition);
   const edges = JSON.parse(execution.workflow.definition).edges as Edge[];
   const environment: Environment = {
     phases: {},
@@ -211,7 +210,7 @@ async function executePhase(
 ): Promise<boolean> {
   const runFn = ExecutorRegistry[node.data.type];
   if (!runFn) {
-    throw new Error("Invalid task type");
+    logCollector.error(`not found executor for ${node.data.type}`);
     return false;
   }
  

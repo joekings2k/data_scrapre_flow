@@ -19,28 +19,39 @@ export default function DeleteWorkflowDialogue({open,setOpen,workflowName,workfl
     }
   })
   return (
-    <AlertDialog open={open} onOpenChange={setOpen} >
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            If you delete this workflow, you will not be able to recover it.
+            If you delete this Credential, you will not be able to recover it.
             <div className="flex flex-col py-4 gap-2 ">
               <p>
-                if you are sure, enter  <b>{workflowName} to confirm</b>
+                if you are sure, enter <b>{workflowName} </b>to confirm
               </p>
-              <Input value={confirmText} onChange={(e)=>setConfirmText(e.target.value)} />
+              <Input
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+              />
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter  >
-          <AlertDialogCancel onClick={()=>setConfirmText("")}>Cancel</AlertDialogCancel>
-          <AlertDialogAction className='bg-destructive text-destructive-foreground hover:bg-destructive/90'  disabled={confirmText !== workflowName || deleteMutation.isPending} onClick={() => {
-            toast.loading("Deleting workflow",{id:workflowId})
-            deleteMutation.mutate(workflowId)
-          }} >Delete</AlertDialogAction>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setConfirmText("")}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={confirmText !== workflowName || deleteMutation.isPending}
+            onClick={() => {
+              toast.loading("Deleting workflow", { id: workflowId });
+              deleteMutation.mutate(workflowId);
+            }}
+          >
+            Delete
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

@@ -32,7 +32,6 @@ export default function ExecutionPage({
 }
 
 async function ExecutionsTableWrapper({ workflowId }: { workflowId: string }) {
-  await waitFor(5000);
   const executions = await getWorkflowExecutions(workflowId);
   if (!executions) {
     return <div>No data</div>;
