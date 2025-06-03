@@ -7,7 +7,7 @@ export async function LaunchBrowserExecutor (environment:ExecutionEnvironment<ty
   const websiteUrl  = environment.getInput("Browser Url")
   
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ["--proxy-server=brd.superproxy.io:33335"],
   });
   environment.log.info('Browser launched successfully');
