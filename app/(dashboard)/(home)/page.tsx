@@ -9,6 +9,9 @@ import StatsCard from "./_components/StatsCard";
 import { waitFor } from "@/lib/helper/waitFor";
 import { getWorkflowExecutionStats } from "@/actions/analytics/getWorkflowExecutionStats";
 import ExecutionStatusChart from "./_components/ExecutionStatusChart";
+import CreditUsageChart from "../billing/_components/CreditUsageChart";
+import { getTotalExecutionStats } from "@/actions/analytics/getTotalExecutionStats";
+import TotalExecutionStatsPeriod from "./_components/TotalExecutionStatsPeriod";
 
 function HomePage({
   searchParams,
@@ -38,6 +41,12 @@ function HomePage({
         </Suspense>
         <Suspense fallback={<Skeleton className="w-full h-[300px]" />}>
           <StatsExecutionStatus selectedPeriod={period} />
+        </Suspense>
+        <Suspense fallback={<Skeleton className="w-full h-[300px]" />}>
+          <CreditsUsageInPeriod selectedPeriod={period} />
+        </Suspense>
+        <Suspense fallback={<Skeleton className="w-full h-[300px]" />}>
+          <GetTotalExecutionStats selectedPeriod={period} />
         </Suspense>
       </div>
     </div>
@@ -79,19 +88,43 @@ async function StatsCards({ selectedPeriod }: { selectedPeriod: Period }) {
 function StatsCardSkeleton() {
   return (
     <div className=" grid gap-3 lg:gap-8 lg:grid-cols-3 min-h-[120px]">
-      {
-        Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="w-full h-[120px] rounded-md" />
-        ))
-      }
-      
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} className="w-full h-[120px] rounded-md" />
+      ))}
     </div>
   );
 }
 
-async function StatsExecutionStatus({ selectedPeriod }: { selectedPeriod: Period }) {
+async function StatsExecutionStatus({
+  selectedPeriod,
+}: {
+  selectedPeriod: Period;
+}) {
   const data = await getWorkflowExecutionStats(selectedPeriod);
   return <ExecutionStatusChart data={data} />;
+}
+async function CreditsUsageInPeriod({
+  selectedPeriod,
+}: {
+  selectedPeriod: Period;
+}) {
+  const data = await getWorkflowExecutionStats(selectedPeriod);
+  return (
+    <CreditUsageChart
+      data={data}
+      title="Daily credits spent"
+      desciption="Daily credits spent in a selected period"
+    />
+  );
+}
+
+async function GetTotalExecutionStats({
+  selectedPeriod,
+}: {
+  selectedPeriod: Period;
+}) {
+  const data = await getTotalExecutionStats(selectedPeriod);
+  return <TotalExecutionStatsPeriod data={data} />;
 }
 
 export default HomePage;
