@@ -27,7 +27,7 @@ function triggerWorkflow (workflowId:string){
   const triggerApiUrl  = getAppUrl(`api/workflows/execute?workflowId=${workflowId}`)
   console.log("trigger url", triggerApiUrl)
   fetch(triggerApiUrl, {
-    cache: "no-store",
+    next: { revalidate: 0 },
     headers: {
       Authorization: `Bearer ${process.env.API_SECRET!}`,
     },
@@ -35,3 +35,5 @@ function triggerWorkflow (workflowId:string){
     console.error("Error triggering workflow", error.message);
   });
 } 
+
+export const dynamic = 'force-dynamic'
