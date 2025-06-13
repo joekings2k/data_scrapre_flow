@@ -18,3 +18,5 @@ const  PhaseStatusBadge = memo(({status }: {status: ExecutionPhaseStatus}) => {
 })
 
 export default PhaseStatusBadge
+
+PhaseStatusBadge.displayName = "PhaseStatusBadge"
