@@ -2,6 +2,8 @@ import { handleCheckoutSessionCompleted } from "@/lib/stripe/handleCheckoutSessi
 import { stripe } from "@/lib/stripe/strpe";
 import { headers } from "next/headers";
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: Request) {
   const body = await request.text();
   const signature = headers().get("Stripe-Signature") as string;
@@ -16,7 +18,7 @@ export async function POST(request: Request) {
     console.log("event", event.type);
     switch(event.type){
       case "checkout.session.completed":
-        handleCheckoutSessionCompleted(event.data.object);
+        await handleCheckoutSessionCompleted(event.data.object);
         break;
       default:
         break;
