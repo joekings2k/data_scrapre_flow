@@ -9,49 +9,53 @@ import {
 } from "@/types/workflow";
 import { timingSafeEqual } from "crypto";
 import parser from "cron-parser";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 function isValidSecret(secret: string): Boolean {
   const API_SECRET = process.env.API_SECRET;
- if(!API_SECRET ) return false
+  if (!API_SECRET) return false;
   try {
-    return timingSafeEqual(Buffer.from(secret), Buffer.from(API_SECRET))
+    return timingSafeEqual(Buffer.from(secret), Buffer.from(API_SECRET));
   } catch (error) {
-    return false
+    return false;
   }
- 
 }
 
-export async function GET(request:Request) {
-  console.log("execute workflow")
-  const authHeader  = request.headers.get("Authorization")
-  if(!authHeader || !authHeader.startsWith("Bearer ")){
-    return new Response("Unauthorized",{status:401})
-  }
-
-  const secret  = authHeader.split(" ")[1]
-  if(!isValidSecret(secret)){
+export async function GET(request: Request) {
+  console.log("execute workflow");
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return new Response("Unauthorized", { status: 401 });
   }
-  const {searchParams} = new URL(request.url)
-  const workflowId = searchParams.get("workflowId")
-  console.log("workflowId", workflowId)
-  if(!workflowId){
+
+  const secret = authHeader.split(" ")[1];
+  if (!isValidSecret(secret)) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const { searchParams } = new URL(request.url);
+  const workflowId = searchParams.get("workflowId");
+  console.log("workflowId", workflowId);
+  if (!workflowId) {
     return new Response("Bad Request", { status: 400 });
   }
-  const workflow =  await prisma.workflow.findUnique({
-    where:{
-      id:workflowId
-    }
-  })
-  if(!workflow){
+  const workflow = await prisma.workflow.findUnique({
+    where: {
+      id: workflowId,
+    },
+  });
+  if (!workflow) {
     return new Response("Not Found", { status: 404 });
   }
 
-  const executionPlan = JSON.parse(workflow.executionPlan!)as WorkflowExecutionPlan;
-  if(!executionPlan){
+  const executionPlan = JSON.parse(
+    workflow.executionPlan!
+  ) as WorkflowExecutionPlan;
+  if (!executionPlan) {
     return new Response("Not Found", { status: 404 });
   }
-  
+
   try {
     const cron = parser.parseExpression(workflow.cron!, { utc: true });
     const nextRun = cron.next().toDate();
@@ -76,10 +80,9 @@ export async function GET(request:Request) {
         },
       },
     });
-    await ExecuteWorkflow(execution.id,nextRun);
+    await ExecuteWorkflow(execution.id, nextRun);
     return Response.json("OK", { status: 200 });
   } catch (error) {
-    return  Response.json({error: "Internal server error"}, { status: 500 });
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
-  
 }
