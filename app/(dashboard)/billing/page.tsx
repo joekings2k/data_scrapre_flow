@@ -9,6 +9,7 @@ import { Period } from "@/types/analytics";
 import { getCreditUsageInPeriods } from "@/actions/analytics/getCreditsUsageInPeriods";
 import CreditUsageChart from "./_components/CreditUsageChart";
 import { getUserPurchaseHistory } from "@/actions/billing/getPurchaseHistory";
+import InvoiceBtn from "./_components/InvoiceBtn";
 
 
 function page() {
@@ -105,6 +106,7 @@ async function TransactionHistoryCard() {
                 {
                   formatAmout(purchase.amount,purchase.currency)
                 }
+                <InvoiceBtn id = {purchase.id} />
               </p>
             </div>
           </div>
