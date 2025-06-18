@@ -28,7 +28,7 @@ import {
   Cell,
 } from "recharts";
 import { getTotalExecutionStats } from "@/actions/analytics/getTotalExecutionStats";
-const colors = ["hsl(var(--chart-2))", "red", "blue", "hsl(var(--chart-4))"];
+const colors = ["red", "blue", "hsl(var(--chart-2))", "hsl(var(--chart-4))"];
 type ChartData = Awaited<ReturnType<typeof getTotalExecutionStats>>;
 const TotalExecutionStatsPeriod = React.memo(
   function TotalExecutionStatsPeriod({ data }: { data: ChartData }) {
@@ -82,7 +82,8 @@ const TotalExecutionStatsPeriod = React.memo(
                 label
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={colors[index]} />
+                
+                    <Cell key={`cell-${index}`} fill={colors[index]} />
                 ))}
               </Pie>
             </PieChart>

@@ -6,17 +6,10 @@ export async function LaunchBrowserExecutor (environment:ExecutionEnvironment<ty
  try {
   const websiteUrl  = environment.getInput("Browser Url")
   
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--proxy-server=brd.superproxy.io:33335"],
-  });
+  const browser = await puppeteer.launch();
   environment.log.info('Browser launched successfully');
   environment.setBrowser(browser)
   const page = await browser.newPage();
-  await page.authenticate({
-    username: "brd-customer-hl_36ae3361-zone-scrape_view",
-    password: "c6cnl6qgqywo",
-  });
   await page.goto(websiteUrl);
   environment.setPage(page)
   environment.log.info(`Browser navigated to ${websiteUrl}`);
