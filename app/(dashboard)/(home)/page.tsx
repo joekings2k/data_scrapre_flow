@@ -64,6 +64,7 @@ async function PeriodSelectorWrapper({
 
 async function StatsCards({ selectedPeriod }: { selectedPeriod: Period }) {
   const data = await getStatsCardsValues(selectedPeriod);
+  console.log(data);
   return (
     <div className=" grid gap-3 lg:gap-8 lg:grid-cols-3 min-h-[120px]">
       <StatsCard
